@@ -1,0 +1,11 @@
+[package]
+name = "blub_indexer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tantivy = { git = "https://github.com/quickwit-oss/tantivy/" }
+
+[[bin]]
+name = "blub_indexer"
+path = "blub_indexer.rs"

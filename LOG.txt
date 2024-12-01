@@ -1,0 +1,60 @@
+11/30/2024:
+- Picking web crawler to use "Open source web crawlers"
+
+Found a repo listing a bunch of web crawlers
+Interpreted languages were disqualified immediatly.
+The C/C++ categories were lacking a bit. Which left golang.
+
+(Go is definetly a language suited for crawling. It makes sense it
+would have a good selection to choose from)
+
+PuerkitoBio/gocrawl <-- Ended up choosing this crawler
+
+Got a test PuerkitoBio/gocrawl crawler up and running.
+
+- Scrapping
+
+At a first glance, I want the URL, I want the title of the "document"
+and I probably want its contents. I can get the url easily. And I can naievly
+get the title and content with the title and body html tags. (Assuming the document is html)
+
+Obvious issue. Not all documents are going to be html.. So I'll need to address this at some point.
+
+Also I want to filter certin content types. A simple blacklist seems to be doing the job
+for now. I'll 100% need to keep adding to it but that seems ok?
+
+Now for the matter of storing the documents to be processed by the indexer.
+I'll save each document like this. Into: <id>.blub1 Where the id is just a running count.
+
+Byte ordering LE
+| U16 - url len   | <-- Header
+| U16 - title len |
+| U32 - body len  |
+-------------------
+| url             | <-- Data
+| title           |
+| body            |
+
+Each .blub1 file is stored under a directory labeled with the domain name it was scrapped from.
+I.e blub1-data/<domain_name>/<id>.blub1
+
+- Indexing
+
+Thankfully the mini-search-engine project instructions constrained the indexer options to two. Tantivy is the obvious choice here.
+I did a bit of rustlings ~4 years ago so I know next to 0 rust...
+
+While my crawler was doing its thing I got rust setup on my machine. I then started poking at the tantivy-cli so I could get a handle on things.
+Tantivy-cli was easy to get running. I had a searchable index in under 4 minutes! (I haven't had to write any rust yet)
+
+When I checked up on the crawler, it had been downloading 100's of .phar files which
+apperently are PHP archive files. I added a blacklist rule for that! I'm sure there will be many more document types to blacklist.
+
+Moving pretty slow in Rust :(, I've got a program that can deserialize all the blub1 files from the crawler.
+
+- Schemas
+
+My current schema:
+
+url, STRING | STORED
+title, TEXT | FAST | STORED
+body, TEXT | FAST | STORED
