@@ -12,7 +12,7 @@ PuerkitoBio/gocrawl <-- Ended up choosing this crawler
 
 Got a test PuerkitoBio/gocrawl crawler up and running.
 
-- Scrapping
+- Scrapping DAY 1
 
 At a first glance, I want the URL, I want the title of the "document"
 and I probably want its contents. I can get the url easily. And I can naievly
@@ -38,7 +38,7 @@ Byte ordering LE
 Each .blub1 file is stored under a directory labeled with the domain name it was scrapped from.
 I.e blub1-data/<domain_name>/<id>.blub1
 
-- Indexing
+- Indexing DAY 1
 
 Thankfully the mini-search-engine project instructions constrained the indexer options to two. Tantivy is the obvious choice here.
 I did a bit of rustlings ~4 years ago so I know next to 0 rust...
@@ -51,10 +51,29 @@ apperently are PHP archive files. I added a blacklist rule for that! I'm sure th
 
 Moving pretty slow in Rust :(, I've got a program that can deserialize all the blub1 files from the crawler.
 
-- Schemas
+- Schemas DAY 1
 
 My current schema:
 
 url, STRING | STORED
 title, TEXT | FAST | STORED
 body, TEXT | FAST | STORED
+
+12/01/2024:
+- Crawling DAY 2
+
+The first thing I did at the start of day 2 was Normalizing the url's and making the crawler concurrent via go routines.
+
+This did not go as planned. gocrawl just kept falling over when used in conjunction with goroutines.
+
+So instead of having a bunch of goroutines I modified the crawler start multiple instances of itself. I.e
+when starting blub_crawler if you don't give it any arguments it will divy up that list of source domains and
+hand ~5 domains to each blub_crawler child process to chew on.
+
+I spent a bit more time tunning gocrawl options. I'm now crawling at a more acceptable speed.
+
+- Indexing DAY 2
+
+
+
+

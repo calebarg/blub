@@ -1,11 +1,18 @@
+//
+// blub_indexer.rs
+//
+// Caleb Barger
+// 11/30/2024
+//
+
 use std::fs::{self, File};
 use std::io::{self, Read};
 use std::mem::{size_of, transmute};
+use std::path::Path;
 use tantivy::collector::TopDocs;
 use tantivy::query::QueryParser;
 use tantivy::schema::*;
 use tantivy::{doc, Index, IndexWriter, ReloadPolicy};
-use std::path::{Path};
 
 #[derive(Debug)]
 #[repr(C)]
@@ -17,22 +24,25 @@ struct Blub1Header {
 
 fn main() -> io::Result<()> {
     let mut schema_builder = Schema::builder();
-    schema_builder.add_text_field("url", STRING|STORED);
-    schema_builder.add_text_field("title", TEXT|FAST|STORED);
-    schema_builder.add_text_field("body", TEXT|FAST|STORED);
+    schema_builder.add_text_field("url", STRING | STORED);
+    schema_builder.add_text_field("title", TEXT | FAST | STORED);
+    schema_builder.add_text_field("body", TEXT | FAST | STORED);
     let schema = schema_builder.build();
 
-    let blub_index_path = "blub-index";
+    let blub_index_path = "blub2-data";
     if !(fs::exists(blub_index_path)?) {
         fs::create_dir(blub_index_path).unwrap();
     }
-
     let index_file_path = Path::new(blub_index_path).join("meta.json");
     if fs::exists(&index_file_path).unwrap() {
         fs::remove_file(index_file_path).unwrap()
     }
     let index = Index::create_in_dir(blub_index_path, schema.clone()).unwrap();
-    let mut index_writer: IndexWriter = index.writer(1024 * 1024 * 50).unwrap();
+    let mut index_writer: IndexWriter = index.writer(1024 * 1024 * 100).unwrap();
+
+    let url = schema.get_field("url").unwrap();
+    let title = schema.get_field("title").unwrap();
+    let body = schema.get_field("body").unwrap();
 
     let mut DEBUG_read_blub1_file_count: u32 = 0;
 
