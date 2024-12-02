@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tantivy = { git = "https://github.com/quickwit-oss/tantivy/" }
+tantivy = { git = "https://github.com/quickwit-oss/tantivy/", tag="0.22.0" }
 
 [[bin]]
 name = "blub_indexer"

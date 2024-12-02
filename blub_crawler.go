@@ -5,6 +5,9 @@
 // 11/30/2024
 //
 
+// NOTE(calebarg): It probably makes more sense to filter for documents that 
+// we do want vs the extensive set of doc types that we do not. 
+
 package main
 
 import (
@@ -169,7 +172,7 @@ func main() {
 		opts.UserAgent = "BLUB_CRAWLER"
 
 		// TODO(calebarg): If you have time don't blacklist PDFs. I can try to handle these as well.
-		blacklistedExts := []string{".jpg", ".png", ".xz", ".bz2", ".asc", ".svg", ".eps", ".phar", ".pdf"}
+		blacklistedExts := []string{".jpg", ".png", ".xz", ".bz2", ".asc", ".svg", ".eps", ".phar", ".pdf", ".psd"}
 		for extIdx := 0; extIdx < len(blacklistedExts); extIdx++ {
 			globalExtBlacklistMap.Store(blacklistedExts[extIdx], 1)
 		}

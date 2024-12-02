@@ -74,6 +74,12 @@ I spent a bit more time tunning gocrawl options. I'm now crawling at a more acce
 
 - Indexing DAY 2
 
+It was to cold in the back room where I have my desktop setup. So I took the oppritunity to get the
+project working on my laptop. Immediatly I ran into build errors. My laptop had rust version 1.79.0. Which 
+caused issues with the latest version of tanitivy. Rust 1.81.0 added a new std::fs function that I had 
+happend to be using, so I had to remove that. 
 
+My cargo file now relies on 0.22.0 of tantivy and I now know that you need at least rust 1.79.0 to compile 
+this project.
 
 
