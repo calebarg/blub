@@ -1,12 +1,10 @@
 //
 // blub_crawler.go
 //
+
 // Caleb Barger
 // 11/30/2024
 //
-
-// NOTE(calebarg): It probably makes more sense to filter for documents that 
-// we do want vs the extensive set of doc types that we do not. 
 
 package main
 
@@ -15,11 +13,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/fs"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
 	"sync"
 	"time"
@@ -38,11 +36,9 @@ type Blub1Header struct {
 	bodyLen  uint32
 }
 
-const domainsToCrawlPerProcess = 5
+const domainsToCrawlPerProcess = 1 // TODO(calebarg): Is this a good number?
 
 var globalRunningID int = 0
-var globalRunningIDMutex = sync.RWMutex{}
-var globalExtBlacklistMap sync.Map
 var globalSourceDomains = []string{
 	"bower.io", "cfdocs.org", "clojure.org", "clojuredocs.org", "codecept.io",
 	"codeception.com", "codeigniter.com", "coffeescript.org", "cran.r-project.org", "crystal-lang.org", "forum.crystal-lang.org", "css-tricks.com", "dart.dev",
@@ -72,6 +68,21 @@ func (e *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Do
 	hostName := ctx.NormalizedURL().Hostname()
 	blubURL := ctx.NormalizedURL().String()
 
+	log.Println(blubURL)
+
+	respBodySniff := make([]byte, 512)
+	bytesRead, err := io.ReadFull(res.Body, respBodySniff)
+	if err != nil {
+		log.Print(err)
+		return nil, false
+	}
+
+	contentType := http.DetectContentType(respBodySniff[0:bytesRead])
+	if contentType != "text/html; charset=utf-8" {
+		log.Printf("Discarding %s because of content type %s\n", blubURL, contentType)
+		return nil, false
+	}
+
 	blubTitleFindResult := doc.Find("title")
 	blubTitle := ""
 	if blubTitleFindResult != nil {
@@ -83,12 +94,8 @@ func (e *Ext) Visit(ctx *gocrawl.URLContext, res *http.Response, doc *goquery.Do
 		blubBody = blubBodyFindResult.Text()
 	}
 
-	log.Printf("%s\n", blubURL)
-
-	globalRunningIDMutex.Lock()
 	blubFileName := strconv.Itoa(globalRunningID) + ".blub1"
 	globalRunningID++
-	globalRunningIDMutex.Unlock()
 
 	blubPath := "blub1-data/" + hostName + "/" + blubFileName
 
@@ -121,13 +128,7 @@ func (e *Ext) Filter(ctx *gocrawl.URLContext, isVisited bool) bool {
 	if isVisited {
 		return false
 	}
-	ext := path.Ext(ctx.NormalizedURL().String())
-	_, ok := globalExtBlacklistMap.Load(ext)
-	if ok {
-		log.Printf("Discarding %s\n", ctx.NormalizedURL())
-		return false
-	}
-	return true
+	return true;
 }
 
 func main() {
@@ -165,17 +166,12 @@ func main() {
 	} else {
 		ext := &Ext{&gocrawl.DefaultExtender{}}
 		opts := gocrawl.NewOptions(ext)
-		opts.CrawlDelay = 1 * time.Millisecond
+		opts.CrawlDelay = 50 * time.Millisecond
 		opts.LogFlags = gocrawl.LogError
 		opts.SameHostOnly = true
 		opts.MaxVisits = 10000
 		opts.UserAgent = "BLUB_CRAWLER"
 
-		// TODO(calebarg): If you have time don't blacklist PDFs. I can try to handle these as well.
-		blacklistedExts := []string{".jpg", ".png", ".xz", ".bz2", ".asc", ".svg", ".eps", ".phar", ".pdf", ".psd"}
-		for extIdx := 0; extIdx < len(blacklistedExts); extIdx++ {
-			globalExtBlacklistMap.Store(blacklistedExts[extIdx], 1)
-		}
 		c := gocrawl.NewCrawlerWithOptions(opts)
 		for argIdx := 1; argIdx < len(os.Args); argIdx++ {
 			domainName := os.Args[argIdx]

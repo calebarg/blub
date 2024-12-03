@@ -1,4 +1,4 @@
-module github.com/calebarg/blub
+module blub_crawler
 
 go 1.23.3
 

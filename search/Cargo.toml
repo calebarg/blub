@@ -1,0 +1,17 @@
+[package]
+name = "blub_search"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tantivy = { git = "https://github.com/quickwit-oss/tantivy/", tag="0.22.0" }
+serde = "1.0"
+serde_json = "1.0"
+
+[lib]
+path = "blub_search.rs"
+crate-type = ["staticlib"]
+
+[profile.release]
+opt-level = 3
+
