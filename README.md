@@ -2,7 +2,7 @@
 
 ## Overview
 
-Blub is a search engine project that uses Rust for indexing and searching. Go's for crawling and serving up html.
+Blub is a search engine project that uses Rust for indexing and searching. Go for crawling and serving up html.
 
 ## Prerequisites
 
